@@ -1,35 +1,48 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import styles from "./styles/OrderModal.module.css";
 
 function OrderModal({ order, setOrderModal }) {
+  const navigate = useNavigate();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
 
   const placeOrder = async () => {
-    const response = await fetch("/api/orders", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name,
-        phone,
-        address,
-        items: order
-      })
-    });
-    const data = await response.json();
-    console.log(data);
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name,
+          phone,
+          address,
+          items: order
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        navigate(`/order-confirmation/${data.id}`);
+      } else {
+        console.error("Failed to create order");
+      }
+    } catch (error) {
+      console.error(`Error: ${error}`);
+    }
   };
+
   return (
     <>
       <div
         label="Close"
         className={styles.orderModal}
-        onKeyPress={(e) => {
+        onKeyDown={(e) => {
           if (e.key === "Escape") {
             setOrderModal(false);
+            console.log("Escape key pressed");
           }
         }}
         onClick={() => setOrderModal(false)}
