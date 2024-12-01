@@ -1,12 +1,19 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./styles/OrderModal.module.css";
 
 function OrderModal({ order, setOrderModal }) {
   const navigate = useNavigate();
+  const modalRef = useRef(null);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+
+  useEffect(() => {
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, []);
 
   const placeOrder = async () => {
     try {
@@ -39,17 +46,27 @@ function OrderModal({ order, setOrderModal }) {
       <div
         label="Close"
         className={styles.orderModal}
+        onClick={() => setOrderModal(false)}
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             setOrderModal(false);
-            console.log("Escape key pressed");
           }
         }}
-        onClick={() => setOrderModal(false)}
         role="menuitem"
         tabIndex={0}
       />
-      <div className={styles.orderModalContent}>
+      <div
+        ref={modalRef}
+        className={styles.orderModalContent}
+        tabIndex={-1}
+        role="button"
+        aria-label="Close Modal"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") {
+            setOrderModal(false);
+          }
+        }}
+      >
         <h2>Place Order</h2>
         <form className={styles.form}>
           <div className={styles.formGroup}>
