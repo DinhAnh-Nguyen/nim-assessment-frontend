@@ -1,14 +1,63 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./styles/OrderModal.module.css";
 
 function OrderModal({ order, setOrderModal }) {
   const navigate = useNavigate();
+  const modalRef = useRef(null);
+
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [validationError, setValidationError] = useState("");
+
+  useEffect(() => {
+    if (modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, []);
+
+  const formatPhoneNumber = (input) => {
+    const cleanedPhoneNumber = input.replace(/\D/g, "");
+    if (cleanedPhoneNumber.length !== 10) {
+      return null;
+    }
+
+    return `(${cleanedPhoneNumber.slice(0, 3)}) ${cleanedPhoneNumber.slice(
+      3,
+      6
+    )}-${cleanedPhoneNumber.slice(6)}`;
+  };
+
+  const validateFields = () => {
+    const errorMessages = [];
+    if (!name.trim()) {
+      errorMessages.push("Enter your name.");
+    }
+    if (!phone.trim()) {
+      errorMessages.push("Enter your phone number.");
+    } else if (!formatPhoneNumber(phone)) {
+      errorMessages.push("Invalid phone number format.");
+    }
+    if (!address.trim()) {
+      errorMessages.push("Enter your address.");
+    }
+
+    if (errorMessages.length > 0) {
+      setValidationError(errorMessages.join(" "));
+      return false;
+    }
+
+    return true;
+  };
 
   const placeOrder = async () => {
+    if (!validateFields()) {
+      return;
+    }
+
+    const formattedPhoneNumber = formatPhoneNumber(phone);
+
     try {
       const response = await fetch("/api/orders", {
         method: "POST",
@@ -17,7 +66,7 @@ function OrderModal({ order, setOrderModal }) {
         },
         body: JSON.stringify({
           name,
-          phone,
+          phone: formattedPhoneNumber,
           address,
           items: order
         })
@@ -42,7 +91,6 @@ function OrderModal({ order, setOrderModal }) {
         onKeyDown={(e) => {
           if (e.key === "Escape") {
             setOrderModal(false);
-            console.log("Escape key pressed");
           }
         }}
         onClick={() => setOrderModal(false)}
@@ -56,6 +104,7 @@ function OrderModal({ order, setOrderModal }) {
             <label htmlFor="name">
               Name
               <input
+                value={name}
                 onChange={(e) => {
                   e.preventDefault();
                   setName(e.target.value);
@@ -69,11 +118,12 @@ function OrderModal({ order, setOrderModal }) {
             <label htmlFor="phone">
               Phone
               <input
+                value={phone}
                 onChange={(e) => {
                   e.preventDefault();
                   setPhone(e.target.value);
                 }}
-                type="phone"
+                type="text"
                 id="phone"
               />
             </label>
@@ -82,29 +132,30 @@ function OrderModal({ order, setOrderModal }) {
             <label htmlFor="address">
               Address
               <input
+                value={address}
                 onChange={(e) => {
                   e.preventDefault();
                   setAddress(e.target.value);
                 }}
-                type="phone"
+                type="text"
                 id="address"
               />
             </label>
           </div>
         </form>
 
+        {validationError && (
+          <div className={styles.error}>
+            <p>{validationError}</p>
+          </div>
+        )}
+
         <div className={styles.orderModalButtons}>
-          <button
-            className={styles.orderModalClose}
-            onClick={() => setOrderModal(false)}
-          >
-            Close
-          </button>
+          <button onClick={() => setOrderModal(false)}>Close</button>
           <button
             onClick={() => {
               placeOrder();
             }}
-            className={styles.orderModalPlaceOrder}
           >
             Place Order
           </button>

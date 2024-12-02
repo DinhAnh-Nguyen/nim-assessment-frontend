@@ -16,6 +16,7 @@
     "react/react-in-jsx-scope": "off",
     "react/jsx-filename-extension": [2, { "extensions": [".jsx"] }],
     "react/prop-types": [2, { "skipUndeclared": true }],
-    "react/button-has-type": "off"
+    "react/button-has-type": "off",
+    "no-console": ["error", { "allow": ["warn", "error"] }]
   }
 }
